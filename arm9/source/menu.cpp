@@ -78,17 +78,24 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 	DrawInfo(global_loglevel);
 	DrawHeader(BOTTOM_SCREEN, "Flashcart info", ((SCREENWIDTH - (14 * FONT_WIDTH)) / 2));
 	DrawStringF(BOTTOM_SCREEN, FONT_WIDTH, FONT_HEIGHT * 2, COLOR_WHITE, "%s\n%s", flashcart_list->at(0)->getAuthor(), flashcart_list->at(0)->getDescription());
+	int flashcart_list_size = flashcart_list->size();
 
 	while (true) //This will be our MAIN loop
 	{
 		bool reprintFlag = false;
-		for (u32 i = 0; i < flashcart_list->size(); i++)
+
+		for (u32 i = 0; i < flashcart_list_size; i++)
 		{
 			cart = flashcart_list->at(i);
+			if (!isDSiMode() && strcmp(cart->getShortName(), "R4iSDHC.hk") == 0) // R4iSDHC.hk only support init from RAW, so hide it on DSMode
+			{
+				flashcart_list_size--;
+				break; // because R4iSDHC.hk is the last one of flashcart_list
+			}
 			DrawString(TOP_SCREEN, FONT_WIDTH, ((i + 2) * FONT_HEIGHT), (i == menu_sel) ? COLOR_RED : COLOR_WHITE, cart->getName());
 		}
 		scanKeys();
-		if (keysDown() & KEY_DOWN && menu_sel < (flashcart_list->size() - 1))
+		if (keysDown() & KEY_DOWN && menu_sel < (flashcart_list_size - 1))
 		{
 			menu_sel++;
 			reprintFlag = true;

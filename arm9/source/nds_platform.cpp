@@ -2,7 +2,9 @@
 #include <nds.h>
 #include <fat.h>
 #include "device.h"
-#include "binaries.h"
+#include "blowfish_ntr_bin.h"
+#include "blowfish_dev_bin.h"
+#include "blowfish_retail_bin.h"
 #define FONT_WIDTH  6
 #define FONT_HEIGHT 10
 #include "ui.h"
@@ -83,7 +85,7 @@ namespace flashcart_core {
 			switch (key) {
 				default:
 				case BlowfishKey::NTR:
-					return *reinterpret_cast<const std::uint8_t(*)[0x1048]>(0x01FFE428);
+					return *static_cast<const std::uint8_t(*)[0x1048]>(static_cast<const void *>(blowfish_ntr_bin));
 				case BlowfishKey::B9Retail:
 					return *static_cast<const std::uint8_t(*)[0x1048]>(static_cast<const void *>(blowfish_retail_bin));
 				case BlowfishKey::B9Dev:
@@ -112,7 +114,17 @@ return_codes_t InjectFIRM(flashcart_core::Flashcart* cart, bool isDevMode)
 	}
 	free(backup_path);
 
-	FILE *FileIn = fopen("/ntrboot/boot9strap_ntr.firm", "rb");
+	uint8_t* blowfish_key = NULL;
+	FILE* FileIn = NULL;
+
+	if (!isDevMode) {
+		FileIn = fopen("/ntrboot/boot9strap_ntr.firm", "rb");
+		blowfish_key = (uint8_t*)blowfish_retail_bin;
+	} else {
+		FileIn = fopen("/ntrboot/boot9strap_ntr_dev.firm", "rb");
+		blowfish_key = (uint8_t*)blowfish_dev_bin;
+	}
+
 	if (!FileIn) { 
 		return FILE_OPEN_FAILED; 
 	}
@@ -129,7 +141,7 @@ return_codes_t InjectFIRM(flashcart_core::Flashcart* cart, bool isDevMode)
 	fclose(FileIn);
 	unmount_fat(); //We must unmount *before* calling any flashcart_core functions
 
-	if (!cart->injectNtrBoot((isDevMode) ? blowfish_dev_bin : blowfish_retail_bin, FIRM, filesize)) {
+	if (!cart->injectNtrBoot(blowfish_key, FIRM, filesize)) {
 		delete[] FIRM;
 		return INJECT_OR_DUMP_FAILED; //FIRM injection failed
 	}
