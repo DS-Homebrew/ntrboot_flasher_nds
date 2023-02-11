@@ -78,7 +78,7 @@ void menu_lvl1(Flashcart* cart, bool isDevMode)
 	DrawInfo(global_loglevel);
 	DrawHeader(BOTTOM_SCREEN, "Flashcart info", ((SCREENWIDTH - (14 * FONT_WIDTH)) / 2));
 	DrawStringF(BOTTOM_SCREEN, FONT_WIDTH, FONT_HEIGHT * 2, COLOR_WHITE, "%s\n%s", flashcart_list->at(0)->getAuthor(), flashcart_list->at(0)->getDescription());
-	int flashcart_list_size = flashcart_list->size();
+	u32 flashcart_list_size = flashcart_list->size();
 
 	while (true) //This will be our MAIN loop
 	{
